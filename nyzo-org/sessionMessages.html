@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>nyzo.org session message signer & validator</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <style>
+        .flex-container {
+            display: flex;
+            /* flex-wrap: wrap; */
+            flex-direction: row;
+        }
+
+        .preliminary {
+            margin: 0.35em;
+            width: auto;
+            border: 1px solid black;  
+        }
+
+        .preliminary p {
+            margin: 0.35em;
+        }
+
+        .flex-item {
+            margin: 0.35em;
+            width: 50%;
+            height: 100%;
+            border: 1px solid black;  
+        }
+
+        .box-content {
+            width: 100%;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .form-section {
+            margin-bottom: 0.25em;
+        }
+
+        .form-field {
+            width: 97%;
+            margin-left: 1.5%;
+            align-self: center;
+        }
+
+        .no-input-section {
+            opacity: 0.7;
+        }
+
+        @media (max-width: 800px) {
+            .flex-item, .flex-item {
+                width: 100%;
+                margin-left: 0px;
+                margin-right: 0px;
+                margin-top: 0.1em;
+                height: auto;
+            }
+
+            .flex-container {
+                display: flow-root;
+            }
+        }
+
+        table {
+            border-collapse: collapse;
+            border: 1px solid rgb(140 140 140);
+            font-family: sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        caption {
+            caption-side: bottom;
+            padding: 10px;
+            font-weight: bold;
+        }
+
+        thead,
+        tfoot {
+            background-color: rgb(228 240 245);
+        }
+
+        th,
+        td {
+            border: 1px solid rgb(160 160 160);
+            padding: 8px 10px;
+            text-wrap: wrap;
+        }
+
+        tbody > tr:nth-of-type(even) {
+            background-color: rgb(237 238 242);
+        }
+
+        tfoot th {
+            text-align: right;
+        }
+
+        tfoot td {
+            font-weight: bold;
+        }
+
+        .verify-pass-text {
+            color: #199919;
+            font-weight: 600;
+        }
+
+        .verify-fail-text {
+            color: rgb(243, 25, 25);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="preliminary">
+        <h3 class="center"><b>INFO</b></h3>
+        <hr style="color: black;"/>
+        <p>This page allows for the signing of a structured session message with a legacy nyzo private seed, which in turn can be used to establish a session on the nyzo.org platform. Timestamps & datetimes are in the UTC timezone.</p>
+        <p>The source code can be downloaded from <a href="https://github.com/construct0/construct0.github.io" target="_blank">the GitHub repository</a>, which enables you to locally open the HTML file. No additional setup is required.</p>
+        <p><b>A nyzo.org session token (cookie) can be obtained once per unique signed session message.<br/><u>Do not share the signed session message yourself if it has not been accepted & publicly shared by nyzo.org.</u><br/><u>Rejected signed session messages are not recorded by the platform.</u></b></p>
+        <noscript>
+            <b>JavaScript is disabled. Please enable JavaScript in order for this page to work.</b>
+        </noscript>
+    </div>
+    <div class="flex-container">
+        <!-- SIGN -->
+        <div class="flex-item">
+            <div class="box-content">
+                <h3 class="center"><b>SIGN</b></h3>
+                <hr style="color: black;"/>
+                <form id="form-sign">
+                    <div class="box-content form-section">
+                        <h4 style="text-align: right; margin-right: 0.85em;">PARAMETERS</h4>
+                    </div>
+                    <div class="box-content form-section">
+                        <label for="sign-private-seed" class="form-field">Private seed*</label>
+                        <input id="sign-private-seed" type="text" class="form-field" autocomplete="off" placeholder="d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"/>
+                    </div>
+                    <div class="box-content form-section no-input-section">
+                        <label for="sign-private-seed-public-identifier" class="form-field"><i>= public identifier</i></label>
+                        <input id="sign-private-seed-public-identifier" type="text" class="form-field" disabled placeholder="134c745ace0685684eff306853268b6eea82cfa84376ad7516dd4381b7bdcbd9"/>
+                    </div>
+
+                    <br/>
+
+                    <div class="box-content form-section">
+                        <label for="sign-session-current-datetime" class="form-field">Current date & time</label>
+                        <input id="sign-session-current-datetime" type="text" class="form-field" disabled/>
+                    </div>
+
+                    <div class="box-content form-section no-input-section">
+                        <label for="sign-session-current-datetime-from-seconds" class="form-field"><i>= start UNIX timestamp, in seconds</i></label>
+                        <input id="sign-session-current-datetime-from-seconds" type="text" class="form-field" disabled/>
+                    </div>
+
+                    <br/>
+                
+                    <div class="box-content form-section">
+                        <label for="sign-session-duration" class="form-field">Session duration*</label>
+                        <select id="sign-session-duration" class="form-field">
+                            <option selected value="7d">7 days</option>
+                            <option value="5d">5 days</option>
+                            <option value="3d">3 days</option>
+                            <option value="2d">2 days</option>
+                            <option value="1d">1 day</option>
+                            <option value="18h">18 hours</option>
+                            <option value="12h">12 hours</option>
+                            <option value="6h">6 hours</option>
+                            <option value="3h">3 hours</option>
+                            <option value="1h">1 hour</option>
+                            <option value="30m">30 minutes</option>
+                            <option value="15m">15 minutes</option>
+                            <option value="5m">5 minutes</option>
+                            <option value="1m">1 minute</option>
+                        </select>
+                    </div>
+
+                    <div class="box-content form-section no-input-section">
+                        <label for="sign-session-duration-converted" class="form-field"><i>= amount of seconds</i></label>
+                        <input id="sign-session-duration-converted" type="text" class="form-field" disabled/>
+                    </div>
+
+                    <div class="box-content form-section no-input-section">
+                        <label for="sign-session-end-datetime" class="form-field"><i>= end date & time</i></label>
+                        <input id="sign-session-end-datetime" type="text" class="form-field" disabled/>
+                    </div>
+
+                    <div class="box-content form-section no-input-section">
+                        <label for="sign-session-end-datetime-seconds" class="form-field"><i>= end UNIX timestamp, in seconds</i></label>
+                        <input id="sign-session-end-datetime-seconds" type="text" class="form-field" disabled/>
+                    </div>
+                    
+                    <br/>
+
+                    <div class="box-content form-section">
+                        <label for="sign-session-message-to-sign" class="form-field">Session message</label>
+                        <textarea id="sign-session-message-to-sign" type="text" class="form-field" rows="2" disabled></textarea>
+                    </div>
+
+                    <div class="box-content form-section">
+                        <button id="sign-session-message-button" type="submit" class="form-field" disabled>SIGN SESSION MESSAGE</button>
+                    </div>
+                </form>
+
+                <hr style="color:black;"/>
+
+                <div class="box-content form-section">
+                    <h4 style="text-align: right; margin-right: 0.85em;">RESULT</h4>
+                </div>
+                <div class="box-content form-section">
+                    <label for="sign-signed-message-hex-string-result" class="form-field">Signed session message</label>
+                    <textarea id="sign-signed-message-hex-string-result" type="text" class="form-field" rows="4" disabled></textarea>
+                </div>
+                <br/>
+            </div>
+        </div>
+    
+        <!-- VERIFY -->
+        <div class="flex-item">
+            <div class="box-content">
+                <h3 class="center"><b>VERIFY</b></h3>
+                <hr style="color: black;"/>
+                <form id="form-verify">
+                    <div class="box-content form-section">
+                        <h4 style="text-align: right; margin-right: 0.85em;">PARAMETERS</h4>
+                    </div>
+
+                    <div class="box-content form-section">
+                        <label for="verify-pair-public-identifier" class="form-field">Public identifier*</label>
+                        <input id="verify-pair-public-identifier" type="text" class="form-field" placeholder="134c745ace0685684eff306853268b6eea82cfa84376ad7516dd4381b7bdcbd9" autocomplete="off"/>
+                    </div>
+
+                    <div class="box-content form-section">
+                        <label for="verify-pair-signed-message" class="form-field">Signed session message*</label>
+                        <textarea id="verify-pair-signed-message" type="text" class="form-field" rows="4" placeholder="2b40ad239dc257fb8a2ba1001b34a95537018886b0a5c67196c0f4aefcea91bd522d37803542a9d13b76d8cef3a6ac5ec7bf7ba9f3d51473d7302b90c61503025b53455353494f4e3a3a6e797a6f2e6f72673a3a313334633734356163653036383536383465666633303638353332363862366565613832636661383433373661643735313664643433383162376264636264393a3a46524f4d3a3a313732313436323032383a3a554e54494c3a3a313732313436323332383a3a454e445d" autocomplete="off"></textarea>
+                    </div>
+
+                    <div class="box-content form-section">
+                        <button id="verify-pair-button" type="submit" class="form-field" disabled>VERIFY</button>
+                    </div>
+                </form>
+
+                <hr style="color:black;"/>
+
+                <div class="box-content form-section">
+                    <h4 style="text-align: right; margin-right: 0.85em; margin-bottom:0px;">RESULT</h4>
+                </div>
+                <div class="box-content form-section">
+                    <table style="width: 97%;" class="form-field">
+                        <thead>
+                            <tr>
+                                <td style="width: 30%; max-width: 30%;">DESCRIPTION</td>
+                                <td>VALUE</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>VALID PUBLIC IDENTIFIER (crude)</td>
+                                <td id="verify-result-valid-public-identifier" class="verify-pass-text">YES</td>
+                            </tr>
+                            <tr>
+                                <td>VALID SIGNATURE</td>
+                                <td id="verify-result-valid-signature" class="verify-pass-text">YES</td>
+                            </tr>
+                            <tr>
+                                <td>VALID CONTENT</td>
+                                <td id="verify-result-valid-content" class="verify-pass-text">YES</td>
+                            </tr>
+                            <tr>
+                                <td>CURRENTLY ACTIVE</td>
+                                <td id="verify-result-currently-active" class="verify-fail-text">NO</td>
+                            </tr>
+                            <tr>
+                                <td>DOMAIN</td>
+                                <td id="verify-result-domain"><textarea style="width: 100%; height: 100%;" disabled>nyzo.org</textarea></td>
+                            </tr>
+                            <tr>
+                                <td>PUBLIC IDENTIFIER</td>
+                                <td id="verify-result-public-identifier"><textarea style="width: 100%; height: 100%;" rows="2" disabled>134c745ace0685684eff306853268b6eea82cfa84376ad7516dd4381b7bdcbd9</textarea></td>
+                            </tr>
+                            <tr>
+                                <td>FROM</td>
+                                <td id="verify-result-from"><textarea style="width: 100%; height: 100%;" rows="1" disabled>1721433147</textarea><br/><i>= 2024-07-19T23:52:27.000Z</i></td>
+                            </tr>
+                            <tr>
+                                <td>UNTIL</td>
+                                <td id="verify-result-until"><textarea style="width: 100%; height: 100%;" rows="1" disabled>1721519547</textarea><br/><i>= 2024-07-20T23:52:27.000Z</i></td>
+                            </tr>
+                            <tr>
+                                <td>SESSION MESSAGE</td>
+                                <td id="verify-result-session-message"><textarea rows="3" style="width: 100%; height: 100%;" disabled>[SESSION::nyzo.org::134c745ace0685684eff306853268b6eea82cfa84376ad7516dd4381b7bdcbd9::FROM::1721462028::UNTIL::1721462328::END]</textarea></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p id="verify-result-placeholder-notice" style="text-align:right; margin-right: 0.85em;"><i>Example data for the parameter placeholder values are shown.<br/>Verify a pair to remove this notice.</i></p>
+            <p id="verify-result-verified-datetime-notice" style="text-align: right; margin-right: 0.85em; display:none;">isostring</p>
+        </div>
+    </div>
+
+    <!-- Dependencies -->
+    <script src="./js/sha256.min.js" type="text/javascript"></script>
+    <script src="./js/nacl.min.js" type="text/javascript"></script>
+
+    <!-- Onload bindings -->
+    <script type="text/javascript">
+        var privateSeed = "";
+        var publicIdentifier = "";
+        var signSessionDuration = 7 * 86400;
+        var sessionMessage = "";
+
+        var verifyPublicIdentifier = "";
+        var verifySignedMessage = "";
+
+        // SIGN
+        window.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("form-sign").addEventListener("submit", function(e) {
+                e.preventDefault(); 
+                
+                let signedSessionMessage = SignMessage(privateSeed, sessionMessage);
+                document.getElementById("sign-signed-message-hex-string-result").value = signedSessionMessage;
+            });
+
+            document.getElementById("sign-session-duration").addEventListener("change", function(e) {
+                e.preventDefault();
+
+                Sign_SyncSessionDurationToVariable();
+            });
+
+            document.getElementById("sign-private-seed").addEventListener("change", function(e){
+                e.preventDefault();
+
+                Sign_SyncPrivateSeedToVariables();
+            });
+
+            document.getElementById("sign-private-seed").addEventListener("input", function(e){
+                e.preventDefault();
+
+                Sign_SyncPrivateSeedToVariables();
+            });
+
+            // Update the current date & time
+            setInterval(() => {
+                Sign_UpdateLifetimeElements();
+                Sign_UpdateSessionMessageVariableAndElement();
+            }, 100);
+        });
+
+        // VERIFY
+        window.addEventListener("DOMContentLoaded", function(){
+            document.getElementById("form-verify").addEventListener("submit", function(e) {
+                e.preventDefault(); 
+                
+                Verify_UpdateElements(Verify_Perform());
+            });
+
+            document.getElementById("verify-pair-public-identifier").addEventListener("change", function(e){
+                e.preventDefault();
+
+                Verify_SyncInputToVariables();
+            });
+
+            document.getElementById("verify-pair-public-identifier").addEventListener("input", function(e){
+                e.preventDefault();
+
+                Verify_SyncInputToVariables();
+            });
+
+            document.getElementById("verify-pair-signed-message").addEventListener("change", function(e){
+                e.preventDefault();
+
+                Verify_SyncInputToVariables();
+            });
+
+            document.getElementById("verify-pair-signed-message").addEventListener("input", function(e){
+                e.preventDefault();
+
+                Verify_SyncInputToVariables();
+            });
+        });
+    </script>
+
+    <!-- DOM logic -->
+    <script type="text/javascript">
+        // SIGN
+        function Sign_SyncPrivateSeedToVariables(){
+            let privateSeedElement = document.getElementById("sign-private-seed");
+            let publicIdentifierElement = document.getElementById("sign-private-seed-public-identifier");
+
+            let signedSessionMessageElement = document.getElementById("sign-signed-message-hex-string-result");
+            signedSessionMessageElement.value = "";
+
+            try {
+                if(privateSeedElement.value.length !== 64){
+                    throw 1;
+                }
+
+                publicIdentifier = GetPrivateSeedPublicIdentifier(privateSeedElement.value);
+                publicIdentifierElement.value = publicIdentifier;
+                privateSeed = privateSeedElement.value;
+            } catch (e){
+                publicIdentifier = "";
+                publicIdentifierElement.value = "Invalid private seed";
+            }
+        }
+
+        function Sign_UpdateSessionMessageVariableAndElement(){
+            let sessionMessageElement = document.getElementById("sign-session-message-to-sign");
+            let signSessionMessageButton = document.getElementById("sign-session-message-button");
+
+            if(privateSeed.length && publicIdentifier.length){
+                let currentDateTimeFromSecondsElement = document.getElementById("sign-session-current-datetime-from-seconds");
+                let endDateTimeSecondsElement = document.getElementById("sign-session-end-datetime-seconds");
+
+                sessionMessage = `[SESSION::nyzo.org::${publicIdentifier}::FROM::${currentDateTimeFromSecondsElement.value}::UNTIL::${endDateTimeSecondsElement.value}::END]`;
+
+                
+                sessionMessageElement.value = sessionMessage;
+                signSessionMessageButton.disabled = false;
+            } else {
+                sessionMessageElement.value = "";
+                signSessionMessageButton.disabled = true;
+            }
+        }
+
+        function Sign_UpdateLifetimeElements(){
+            Sign_UpdateSessionDurationToSecondsElement();
+
+            let currentDateTimeElement = document.getElementById("sign-session-current-datetime");
+            let currentDateTimeFromSecondsElement = document.getElementById("sign-session-current-datetime-from-seconds");
+            let endDateTimeElement = document.getElementById("sign-session-end-datetime");
+            let endDateTimeSecondsElement = document.getElementById("sign-session-end-datetime-seconds");
+
+            let datetime = new Date(Date.now());
+            currentDateTimeElement.value = `${datetime.toISOString()}`;
+            currentDateTimeFromSecondsElement.value = parseInt(datetime / 1000).toString();
+        
+            let endDatetime = new Date(datetime.getTime() + (signSessionDuration * 1000));
+            endDateTimeElement.value = `${endDatetime.toISOString()}`;
+            endDateTimeSecondsElement.value = parseInt(endDatetime / 1000).toString();
+        }
+
+        function Sign_SyncSessionDurationToVariable(){
+            let signSessionDurationElement = document.getElementById("sign-session-duration");
+
+            let sessionDurationMap = {
+                "7d": 7 * 86400,
+                "5d": 5 * 86400,
+                "3d": 3 * 86400,
+                "2d": 2 * 86400,
+                "1d": 86400,
+                "18h": 18 * 60 * 60,
+                "12h": 12 * 60 * 60,
+                "6h": 6 * 60 * 60,
+                "3h": 3 * 60 * 60,
+                "1h": 60 * 60,
+                "30m": 30 * 60,
+                "15m": 15 * 60,
+                "5m": 5 * 60,
+                "1m": 60
+            };
+
+            signSessionDuration = sessionDurationMap[signSessionDurationElement.value];
+        }
+
+        function Sign_UpdateSessionDurationToSecondsElement(){
+            let durationConvertedElement = document.getElementById("sign-session-duration-converted");
+            durationConvertedElement.value = signSessionDuration.toString();
+        }
+    
+        // VERIFY
+        function Verify_SyncInputToVariables(){
+            let verifyPublicIdentifierElement = document.getElementById("verify-pair-public-identifier");
+            let verifySignedMessageElement = document.getElementById("verify-pair-signed-message");
+            let verifyButton = document.getElementById("verify-pair-button");
+
+            verifyPublicIdentifier = verifyPublicIdentifierElement.value;
+            verifySignedMessage = verifySignedMessageElement.value;
+
+            if(verifyPublicIdentifier?.length && verifySignedMessage?.length){
+                verifyButton.disabled = false;
+            } else {
+                verifyButton.disabled = true;
+            }
+        }
+        
+        function Verify_Perform(){
+            let result = {
+                validPublicIdentifier: false,
+                validSignature: false,
+                validContent: false,
+                currentlyActive: false,
+                domain: "",
+                publicIdentifier: "",
+                from: "", // requires conversion
+                until: "", // requires conversion
+                fullSessionMessage: ""
+            };
+         
+            result.validPublicIdentifier = verifyPublicIdentifier?.length === 64;
+
+            if(!result.validPublicIdentifier){
+                return result;
+            }
+
+            result.validSignature = VerifySignedSessionMessageHexStringByPublicIdentifier(verifySignedMessage, verifyPublicIdentifier);
+
+            if(!result.validSignature){
+                return result;
+            }
+
+            result.fullSessionMessage = GetVerifiedSignedSessionMessageHexStringContent(verifySignedMessage, verifyPublicIdentifier);
+
+            result.validContent = ValidateSessionMessageContent(verifySignedMessage, result.fullSessionMessage);
+
+            if(!result.validContent){
+                return result;
+            }
+
+            result.currentlyActive = IsSessionMessageContentActive(result.fullSessionMessage);
+
+            let values = result.fullSessionMessage.split("::");
+            let domainPositionValue = values[1];
+            let publicIdentifierPositionValue = values[2];
+            let fromTimestampPositionValue = values[4];
+            let untilTimestampPositionValue = values[6];
+
+            result.domain = domainPositionValue;
+            result.publicIdentifier = verifyPublicIdentifier;
+            result.from = parseInt(fromTimestampPositionValue);
+            result.until = parseInt(untilTimestampPositionValue);
+
+            return result;
+        }
+
+        function Verify_UpdateElements(result){
+            let validPublicIdentifierElement = document.getElementById("verify-result-valid-public-identifier");
+            let validSignatureElement = document.getElementById("verify-result-valid-signature");
+            let validContentElement = document.getElementById("verify-result-valid-content");
+            let currentlyActiveElement = document.getElementById("verify-result-currently-active");
+            let domainElement = document.getElementById("verify-result-domain");
+            let publicIdentifierElement = document.getElementById("verify-result-public-identifier");
+            let fromElement = document.getElementById("verify-result-from");
+            let untilElement = document.getElementById("verify-result-until");
+            let sessionMessageElement = document.getElementById("verify-result-session-message");
+
+            let decorateElement = (element, value) => {
+                if(value) {
+                    element.innerHTML = "YES";
+                    element.classList.remove("verify-fail-text");
+                    element.classList.add("verify-pass-text");
+                } else {
+                    element.innerHTML = "NO";
+                    element.classList.add("verify-fail-text");
+                    element.classList.remove("verify-pass-text");
+                }
+            }
+
+            decorateElement(validPublicIdentifierElement, result.validPublicIdentifier);
+            decorateElement(validSignatureElement, result.validSignature);
+            decorateElement(validContentElement, result.validContent);
+            decorateElement(currentlyActiveElement, result.currentlyActive);
+
+            domainElement.innerHTML = `<textarea style="width: 100%; height: 100%;" disabled>${result.domain}</textarea>`;
+            publicIdentifierElement.innerHTML = `<textarea style="width: 100%; height: 100%;" rows="2" disabled>${result.publicIdentifier}</textarea>`;
+            fromElement.innerHTML = `<textarea style="width: 100%; height: 100%;" rows="1" disabled>${result.from}</textarea><br/><i>= ${(result.validContent ? new Date(parseInt(result.from) * 1000).toISOString() : result.from)}</i>`;
+            untilElement.innerHTML = `<textarea style="width: 100%; height: 100%;" rows="1" disabled>${result.until}</textarea><br/><i>= ${(result.validContent ? new Date(parseInt(result.until) * 1000).toISOString() : result.until)}</i>`;
+            sessionMessageElement.innerHTML = `<textarea rows="3" style="width: 100%; height: 100%;" disabled>${result.fullSessionMessage}</textarea>`;
+
+            document.getElementById("verify-result-placeholder-notice").style.display = "none";
+            let verifiedAtElement = document.getElementById("verify-result-verified-datetime-notice")
+            verifiedAtElement.innerHTML = `<i>Verified on ${new Date(Date.now()).toISOString()}</i>`;
+            verifiedAtElement.style.display = "block";
+        }
+    </script>
+
+    <!-- Core logic -->
+    <script type="text/javascript">
+        // Converts the legacy private seed to a byte array
+        function HexStringAsUint8Array(identifier) {
+            identifier = identifier.split("-").join("");
+            let array = new Uint8Array(identifier.length / 2);
+
+            for (let i = 0; i < array.length; i++) {
+                array[i] = parseInt(identifier.substring(i * 2, i * 2 + 2), 16);
+            }
+        
+            return array;
+        }
+
+        // Converts the legacy private seed to a key pair
+        function PrivateSeedToKeyPair(privateSeedString){
+            let privateSeedBytes = HexStringAsUint8Array(privateSeedString);
+            let keyPair = nacl.sign.keyPair.fromSeed(privateSeedBytes);
+
+            return keyPair;
+        }
+
+        // Signs the message and returns the signed message hex string
+        function SignMessage(privateSeedString, message){
+            let keyPair = PrivateSeedToKeyPair(privateSeedString);
+            var messageBytes = new TextEncoder("utf-8").encode(message);
+            let signedMessageBytes = nacl.sign(messageBytes, keyPair.secretKey);
+            let signedMessageHexString = Array.prototype.map.call(signedMessageBytes, x => ('00' + x.toString(16)).slice(-2)).join('');
+
+            return signedMessageHexString;
+        }
+
+        // Gets the public identifier for the given legacy private seed
+        function GetPrivateSeedPublicIdentifier(privateSeedString){
+            let keyPair = PrivateSeedToKeyPair(privateSeedString);
+            let publicIdentifierBytes = keyPair.publicKey;
+            let publicIdentifierHexString = Array.prototype.map.call(publicIdentifierBytes, x => ('00' + x.toString(16)).slice(-2)).join('');
+
+            return publicIdentifierHexString;
+        }
+
+        // Returns true if the given public identifier has signed the given signed session message hex string 
+        function VerifySignedSessionMessageHexStringByPublicIdentifier(signedMessageHexString, publicIdentifierHexString){
+            if(nacl.sign.open(HexStringAsUint8Array(signedMessageHexString), HexStringAsUint8Array(publicIdentifierHexString))){
+                return true;
+            }
+
+            return false;
+        }
+
+        // Returns the message without signature 
+        function GetVerifiedSignedSessionMessageHexStringContent(signedMessageHexString, publicIdentifierHexString){
+            let signedMessageContentBytes = nacl.sign.open(HexStringAsUint8Array(signedMessageHexString), HexStringAsUint8Array(publicIdentifierHexString));
+
+            if(!signedMessageContentBytes){
+                return "";
+            }
+
+            return new TextDecoder("utf-8").decode(signedMessageContentBytes);
+
+        }
+
+        // Validates the content of the session message
+        // This does *not* check whether - the otherwise valid session message - is currently active (by FROM and UNTIL) 
+        function ValidateSessionMessageContent(signedMessageHexString, content){
+            if(content.length != 127){
+                return false;
+            }
+
+            let values = content.split("::");
+
+            if(values.length != 8){
+                return false;
+            }
+
+            let staticMap = {
+                0: "[SESSION",
+                1: "nyzo.org",
+                3: "FROM",
+                5: "UNTIL",
+                7: "END]"
+            };
+
+            for(let i=0; i<values.length; i++){
+                if(staticMap[i]){
+                    if(values[i] != staticMap[i]){
+                        console.log(values[i], staticMap[i]);
+                        return false;
+                    }
+                }
+            }
+
+            let domainPositionValue = values[1];
+            let publicIdentifierPositionValue = values[2];
+            let fromTimestampPositionValue = values[4];
+            let untilTimestampPositionValue = values[6];
+
+            // The message provided is obtained by verifying the validity of the signed message, yet the identifier within the message itself must not be different.
+            if(!VerifySignedSessionMessageHexStringByPublicIdentifier(signedMessageHexString, publicIdentifierPositionValue)){
+                return false;
+            }
+
+            let parsedFrom = parseInt(fromTimestampPositionValue);
+            let parsedUntil = parseInt(untilTimestampPositionValue);
+
+            if(isNaN(parsedFrom) || isNaN(parsedUntil)){
+                return false;
+            }
+
+            if(parsedFrom >= parsedUntil){
+                return false;
+            }
+
+            return true;
+        }
+
+        function GetDateForTimestampSeconds(timestampSeconds){
+            return new Date(timestampSeconds * 1000);
+        }
+
+        // Returns true if the session message content is currently active, by FROM and UNTIL
+        function IsSessionMessageContentActive(content){
+            let values = content.split("::");
+            
+            let fromTimestampPositionValue = values[4];
+            let untilTimestampPositionValue = values[6];
+
+            let parsedFrom = parseInt(fromTimestampPositionValue);
+            let parsedUntil = parseInt(untilTimestampPositionValue);
+        
+            let fromDateTime = parsedFrom;
+            let untilDateTime = parsedUntil;
+            let currentDateTime = new Date() / 1000;
+
+            return (fromDateTime <= currentDateTime) && (currentDateTime < untilDateTime);
+        }
+
+        // Returns how long the session message content is still active for, in seconds
+        function GetRemainingSessionMessageContentLifetimeSeconds(content){
+            let values = content.split("::");
+            
+            let fromTimestampPositionValue = values[4];
+            let untilTimestampPositionValue = values[6];
+
+            let parsedFrom = parseInt(fromTimestampPositionValue);
+            let parsedUntil = parseInt(untilTimestampPositionValue);
+        
+            let fromDateTime = GetDateForTimestampSeconds(parsedFrom);
+            let untilDateTime = GetDateForTimestampSeconds(parsedUntil);
+            let currentDateTime = new Date(Date.now());
+
+            if(currentDateTime >= untilDateTime){
+                return 0;
+            }
+
+            if(fromDateTime >= untilDateTime){
+                return 0;
+            }
+
+            var difference = 
+                ((currentDateTime > fromDateTime) ? currentDateTime : fromDateTime).getTime()
+                - untilDateTime.getTime();
+
+            let differenceSeconds = difference / 1000;
+            return Math.abs(differenceSeconds);
+        }
+    </script>
+</body>
+</html>
